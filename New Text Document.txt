@@ -1,0 +1,19 @@
+function drawImage(){
+    var ctx = $("canvas")[0].getContext("2d"),
+        img = new Image();
+    
+    img.onload = function(){
+        ctx.drawImage(img, 0, 0, 500, 500);
+        $("span").text("Loaded.");
+    };
+    img.src = "http://photojournal.jpl.nasa.gov/jpeg/PIA17555.jpg";
+    $("span").text("Loading...");
+}
+
+$("button").click(drawImage);
+
+<button>Add image</button><span></span>
+<canvas width="500" height="500"></canvas>
+
+
+http://zhangwenli.com/blog/2015/12/27/upload-canvas-snapshot-to-nodejs/

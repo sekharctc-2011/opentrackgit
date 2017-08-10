@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>My Electron Screenshot App</title>
+        
+    </head>
+    <body>
+        <p>Testing screenshots in Electron :3</p>
+        <img id="my-preview"/>
+        <label id="screenshot-path">Path :: </label>
+        <input type="file" name="" value="upload file">
+        <button id="screen-shot">Take Screenshot</button>
+        <input type="text" name="" value="" id="scid">
+        <button id="addimg">Add image</button><span></span>
+        <canvas name="scimg" id="scimg" width="550" height="550"></canvas>
+
+    </body>
+    <script>
+        
+        let $ = require('jquery')
+        require('./render.js')
+
+        var remote = require('electron').remote;
+        document.addEventListener('keydown', function (e){
+            if (e.which === 123) {
+                remote.getCurrentWindow().webContents.openDevTools();
+            } else if (e.which === 116){
+                location.reload();
+            }
+        });
+
+$("#addimg").click(testdd);
+function testdd() {
+    console.log(document.querySelector('#scimg').toDataURL());
+}
+    function drawImage(){
+    var ctx = $("canvas")[0].getContext("2d"),
+        img = new Image();
+    
+    img.onload = function(){
+        ctx.drawImage(img, 0, 0, 500, 500);
+        $("span").text("Loaded.");
+    };
+    img.src = "http://photojournal.jpl.nasa.gov/jpeg/PIA17555.jpg";
+    $("span").text("Loading...");
+}
+
+
+</script>
+
+</html>
