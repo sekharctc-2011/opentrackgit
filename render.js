@@ -35,7 +35,7 @@ screenshot.addEventListener('click', function(event){
                     var ctx = $("canvas")[0].getContext("2d"),
                     img = new Image();  
                     img.onload = function(){
-                        ctx.drawImage(img, 0, 0, 150, 150);
+                        ctx.drawImage(img, 0, 0, 300, 300);
                         $("span").text("Loaded.");
                     };
                     //img.src = "http://photojournal.jpl.nasa.gov/jpeg/PIA17555.jpg";
@@ -57,6 +57,7 @@ screenshot.addEventListener('click', function(event){
 function determineScreenShot(){
     const screenSize = electronScreen.getPrimaryDisplay().workAreaSize;
     const maxDimension = Math.max(screenSize.width, screenSize.height);
+
     return {
         width: maxDimension * window.devicePixelRatio,
         height: maxDimension * window.devicePixelRatio
@@ -64,5 +65,4 @@ function determineScreenShot(){
 }
 
 $("span").text("dddd...");
-
 
