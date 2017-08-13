@@ -3,29 +3,44 @@
     <head>
         <meta charset="utf-8">
         <title>My Electron Screenshot App</title>
-        
+        <style type="text/css">
+            div.timer {
+                border:1px #666666 solid;
+                width:190px;
+                height:50px;
+                line-height:50px;
+                font-size:36px;
+                font-family:"Courier New", Courier, monospace;
+                text-align:center;
+                margin:5px;
+            }
+        </style>
     </head>
     <body>
+         <div class="timer">
+            <span class="hour">00</span>:<span class="minute">00</span>:<span class="second">00</span>
+        </div>
+        <div class="control">
+            <input type="button" id="stime" value="Start" onClick="timer.start(1000)">
+        </div>
         <p>Testing screenshots in Electron :3</p>
         <!-- <img id="my-preview"/> -->
-        <label id="screenshot-path">Path :: </label>
-        <input type="file" name="" value="upload file">
-        <button id="screen-shot">Take Screenshot</button>
-        <input type="text" name="" value="" id="scid">
-        <button id="addimg">Add image</button><span></span>
+        <!-- <label id="screenshot-path">Path :: </label> -->
+        <!-- <input type="file" name="" value="upload file"> -->
+        <!-- <button id="screen-shot">Take Screenshot</button> -->
+        <!-- <input type="text" name="" value="" id="scid"> -->
+        <!-- <button id="addimg">Add image</button><span></span> -->
         <!-- <canvas name="scimg" id="scimg" width="550" height="550"></canvas> -->
 
         <img id="my-preview"/>
         <input id="trigger" value="Fullscreen screenshot" type="button"/>
         <input type="text" id="base64_img" value="blah blah"/>
 
-
-        
     </body>
     <script>
         
         let $ = require('jquery')
-        require('./render.js')
+        // require('./render.js')
 
         var remote = require('electron').remote;
         document.addEventListener('keydown', function (e){
@@ -40,7 +55,8 @@ $("#addimg").click(testdd);
 function testdd() {
     console.log(document.querySelector('#scimg').toDataURL());
 }
-    function drawImage(){
+
+function drawImage(){
     var ctx = $("canvas")[0].getContext("2d"),
         img = new Image();
     
@@ -133,13 +149,14 @@ function fullscreenScreenshot(callback, imageFormat) {
         }
     });
 }
+
 document.getElementById("trigger").addEventListener("click", function(){
                 fullscreenScreenshot(function(base64data){
                     // Draw image in the img tag
                     $("#base64_img").val(base64data);
                     // call ajax request
                     var txt = $("#base64_img").val();
-                    $.post("http://localhost:3000/api/opentrackpost", {image_post: txt}, function(result){
+                    $.post("https://wepoptrack.herokuapp.com/api/opentrackpost", {image_post: txt}, function(result){
                         //alert(result);
                         //$("#base64_img").val('');
                     });
@@ -152,10 +169,145 @@ document.getElementById("trigger").addEventListener("click", function(){
             },false);
 
 //capture screenshot in time interval
-setInterval(alertFunc, 7000);
-function alertFunc(params) {
+//setInterval(TakeScreenShot, 60000);
+function TakeScreenShot(params) {
     $("#trigger").trigger("click");
 }
+
+function _timer(callback)
+{
+    var time = 0;     //  The default time of the timer
+    var mode = 1;     //    Mode: count up or count down
+    var status = 0;    //    Status: timer is running or stoped
+    var timer_id;    //    This is used by setInterval function
+    var screen_take; //used for take/stop screenshot
+    
+    // this will start the timer ex. start the timer with 1 second interval timer.start(1000) 
+    this.start = function(interval)
+    {
+        interval = (typeof(interval) !== 'undefined') ? interval : 1000;
+ 		
+ 		if(status == 1)
+        {
+            status = 0;
+            clearInterval(timer_id);
+            $("#stime").val('Start');
+            clearInterval(screen_take);
+        }
+        else
+        {
+            if(status == 0)
+            {
+                // call screenshot function in interval
+                screen_take = setInterval( function() { TakeScreenShot() }, 30000);
+                // change start/pause button value
+                $("#stime").val('Pause');
+                status = 1;
+                timer_id = setInterval(function()
+                {
+                    switch(mode)
+                    {
+                        default:
+                        if(time)
+                        {
+                            time--;
+                            generateTime();
+                            if(typeof(callback) === 'function') callback(time);
+                        }
+                        break;
+                        
+                        case 1:
+                        if(time < 86400)
+                        {
+                            time++;
+                            generateTime();
+                            if(typeof(callback) === 'function') callback(time);
+                        }
+                        break;
+                    }
+                }, interval);
+            }
+       }
+    }
+    
+    //  Same as the name, this will stop or pause the timer ex. timer.stop()
+    this.stop =  function()
+    {
+        if(status == 1)
+        {
+            status = 0;
+            clearInterval(timer_id);
+        }
+    }
+    
+    // Reset the timer to zero or reset it to your own custom time ex. reset to zero second timer.reset(0)
+    this.reset =  function(sec)
+    {
+        sec = (typeof(sec) !== 'undefined') ? sec : 0;
+        time = sec;
+        generateTime(time);
+    }
+    
+    // Change the mode of the timer, count-up (1) or countdown (0)
+    this.mode = function(tmode)
+    {
+        mode = tmode;
+    }
+    
+    // This methode return the current value of the timer
+    this.getTime = function()
+    {
+        return time;
+    }
+    
+    // This methode return the current mode of the timer count-up (1) or countdown (0)
+    this.getMode = function()
+    {
+        return mode;
+    }
+    
+    // This methode return the status of the timer running (1) or stoped (1)
+    this.getStatus
+    {
+        return status;
+    }
+    
+    // This methode will render the time variable to hour:minute:second format
+    function generateTime()
+    {
+        var second = time % 60;
+        var minute = Math.floor(time / 60) % 60;
+        var hour = Math.floor(time / 3600) % 60;
+        
+        second = (second < 10) ? '0'+second : second;
+        minute = (minute < 10) ? '0'+minute : minute;
+        hour = (hour < 10) ? '0'+hour : hour;
+        
+        $('div.timer span.second').html(second);
+        $('div.timer span.minute').html(minute);
+        $('div.timer span.hour').html(hour);
+    }
+}
+ 
+// example use
+var timer;
+ 
+$(document).ready(function(e) 
+{
+    timer = new _timer
+    (
+        function(time)
+        {
+            if(time == 0)
+            {
+                timer.stop();
+                alert('time out');
+            }
+        }
+    );
+    timer.reset(0);
+    timer.mode(1);
+});
 
 </script>
 
