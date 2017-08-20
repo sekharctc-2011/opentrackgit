@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>My Electron Screenshot App [Login User]</title>
+        <style type="text/css">
+            
+        </style>
+    </head>
+    <body>
+        <label for="username">User Name</label>
+        <input type="text" id="username" name="username" value="">
+        <label for="pwds"></label>
+        <input type="password" id="pwds" name="pwds" value="">
+        <input type="button" name="login" value="Sign In" onclick="validatelogin()">
+    </body>
+    <script>
+        let $ = require('jquery')
+        const Store = require('electron-store');
+        const store = new Store();
+        
+        function validatelogin(params) {
+           var usname = $("#username").val().trim();
+           var pw = $("#pwds").val().trim();
+           $.ajax({
+               type: "POST",
+               async: false,
+               url : "http://localhost:3000/users/auth",
+               data :{uname : usname, password:pw },
+               dataType: "json",
+               success: function (data) {
+                  if(data.sucess == true){
+                        console.log('Data retrived');
+                        store.set('optrackuser', usname);
+                        store.set('optoken', data.token);
+                        window.location.href = "index.html";
+                  }
+                   console.log(data);
+               },
+               error : function (result) {
+                        alert('Error: Please Internet connection');
+                        console.log(result);
+                        store.delete('optrackuser');
+                        store.delete('optoken');
+               }
+           });
+            
+
+            //store.set('optrackuser', 'subhransu');
+            //console.log(store.get('unicorn'));
+            // Use dot-notation to access nested properties
+            //store.set('foo.bar', true);
+            // console.log(store.get('foo'));
+            //=> {bar: true}
+            //store.delete('optrackuser');
+            //window.location.href = '/index.html';
+        }
+
+        var remote = require('electron').remote;
+        document.addEventListener('keydown', function (e){
+            if (e.which === 123) {
+                remote.getCurrentWindow().webContents.openDevTools();
+            } else if (e.which === 116){
+                location.reload();
+            }
+        });
+    </script>
+</html>

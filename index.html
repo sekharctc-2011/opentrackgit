@@ -35,12 +35,17 @@
         <img id="my-preview"/>
         <input id="trigger" value="Fullscreen screenshot" type="button"/>
         <input type="text" id="base64_img" value="blah blah"/>
+        <input type="text" id="logtime">
 
     </body>
     <script>
         
         let $ = require('jquery')
         // require('./render.js')
+        const Store = require('electron-store');
+        const store = new Store();
+        var loguser = store.get('optrackuser');
+        var logtoken = store.get('optoken');
 
         var remote = require('electron').remote;
         document.addEventListener('keydown', function (e){
@@ -51,263 +56,292 @@
             }
         });
 
-$("#addimg").click(testdd);
-function testdd() {
-    console.log(document.querySelector('#scimg').toDataURL());
-}
-
-function drawImage(){
-    var ctx = $("canvas")[0].getContext("2d"),
-        img = new Image();
-    
-    img.onload = function(){
-        ctx.drawImage(img, 0, 0, 500, 500);
-        $("span").text("Loaded.");
-    };
-    img.src = "http://photojournal.jpl.nasa.gov/jpeg/PIA17555.jpg";
-    $("span").text("Loading...");
-}
-
-
-const {desktopCapturer, screen} = require('electron');
-
-/**
- * Create a screenshot of the entire screen using the desktopCapturer module of Electron.
- *
- * @param callback {Function} callback receives as first parameter the base64 string of the image
- * @param imageFormat {String} Format of the image to generate ('image/jpeg' or 'image/png')
- **/
-function fullscreenScreenshot(callback, imageFormat) {
-    var _this = this;
-    this.callback = callback;
-    imageFormat = imageFormat || 'image/jpeg';
-    
-    this.handleStream = (stream) => {
-        // Create hidden video tag
-        var video = document.createElement('video');
-        video.style.cssText = 'position:absolute;top:-10000px;left:-10000px;';
-        // Event connected to stream
-        video.onloadedmetadata = function () {
-            // Set video ORIGINAL height (screenshot)
-            video.style.height = this.videoHeight + 'px'; // videoHeight
-            video.style.width = this.videoWidth + 'px'; // videoWidth
-
-            // Create canvas
-            var canvas = document.createElement('canvas');
-            canvas.width = this.videoWidth;
-            canvas.height = this.videoHeight;
-            var ctx = canvas.getContext('2d');
-            // Draw video on canvas
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            if (_this.callback) {
-                // Save screenshot to base64
-                _this.callback(canvas.toDataURL(imageFormat));
-            } else {
-                console.log('Need callback!');
-            }
-
-            // Remove hidden video tag
-            video.remove();
-            try {
-                // Destroy connect to stream
-                stream.getTracks()[0].stop();
-            } catch (e) {}
+        $("#addimg").click(testdd);
+        function testdd() {
+            console.log(document.querySelector('#scimg').toDataURL());
         }
-        video.src = URL.createObjectURL(stream);
-        document.body.appendChild(video);
-    };
 
-    this.handleError = function(e) {
-        console.log(e);
-    };
+        function drawImage(){
+            var ctx = $("canvas")[0].getContext("2d"),
+                img = new Image();
+            
+            img.onload = function(){
+                ctx.drawImage(img, 0, 0, 500, 500);
+                $("span").text("Loaded.");
+            };
+            img.src = "http://photojournal.jpl.nasa.gov/jpeg/PIA17555.jpg";
+            $("span").text("Loading...");
+        }
 
-    // Filter only screen type
-    desktopCapturer.getSources({types: ['screen']}, (error, sources) => {
-        if (error) throw error;
-        // console.log(sources);
-        for (let i = 0; i < sources.length; ++i) {
-            console.log(sources);
-            // Filter: main screen
-            if (sources[i].name === "Entire screen") {
-                navigator.webkitGetUserMedia({
-                    audio: false,
-                    video: {
-                        mandatory: {
-                            chromeMediaSource: 'desktop',
-                            chromeMediaSourceId: sources[i].id,
-                            minWidth: 600,
-                            maxWidth: 800,
-                            minHeight: 500,
-                            maxHeight: 600
+
+    const {desktopCapturer, screen} = require('electron');
+
+    /**
+     * Create a screenshot of the entire screen using the desktopCapturer module of Electron.
+     *
+     * @param callback {Function} callback receives as first parameter the base64 string of the image
+     * @param imageFormat {String} Format of the image to generate ('image/jpeg' or 'image/png')
+     **/
+    function fullscreenScreenshot(callback, imageFormat) {
+        var _this = this;
+        this.callback = callback;
+        imageFormat = imageFormat || 'image/jpeg';
+        
+        this.handleStream = (stream) => {
+            // Create hidden video tag
+            var video = document.createElement('video');
+            video.style.cssText = 'position:absolute;top:-10000px;left:-10000px;';
+            // Event connected to stream
+            video.onloadedmetadata = function () {
+                // Set video ORIGINAL height (screenshot)
+                video.style.height = this.videoHeight + 'px'; // videoHeight
+                video.style.width = this.videoWidth + 'px'; // videoWidth
+
+                // Create canvas
+                var canvas = document.createElement('canvas');
+                canvas.width = this.videoWidth;
+                canvas.height = this.videoHeight;
+                var ctx = canvas.getContext('2d');
+                // Draw video on canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                if (_this.callback) {
+                    // Save screenshot to base64
+                    _this.callback(canvas.toDataURL(imageFormat));
+                } else {
+                    console.log('Need callback!');
+                }
+
+                // Remove hidden video tag
+                video.remove();
+                try {
+                    // Destroy connect to stream
+                    stream.getTracks()[0].stop();
+                } catch (e) {}
+            }
+            video.src = URL.createObjectURL(stream);
+            document.body.appendChild(video);
+        };
+
+        this.handleError = function(e) {
+            console.log(e);
+        };
+
+        // Filter only screen type
+        desktopCapturer.getSources({types: ['screen']}, (error, sources) => {
+            if (error) throw error;
+            // console.log(sources);
+            for (let i = 0; i < sources.length; ++i) {
+                console.log(sources);
+                // Filter: main screen
+                if (sources[i].name === "Entire screen") {
+                    navigator.webkitGetUserMedia({
+                        audio: false,
+                        video: {
+                            mandatory: {
+                                chromeMediaSource: 'desktop',
+                                chromeMediaSourceId: sources[i].id,
+                                minWidth: 400,
+                                maxWidth: 500,
+                                minHeight: 350,
+                                maxHeight: 450
+                            }
                         }
-                    }
-                }, this.handleStream, this.handleError);
+                    }, this.handleStream, this.handleError);
 
-                return;
+                    return;
+                }
             }
-        }
-    });
-}
+        });
+    }
 
-document.getElementById("trigger").addEventListener("click", function(){
+    document.getElementById("trigger").addEventListener("click", function(){
+
                 fullscreenScreenshot(function(base64data){
                     // Draw image in the img tag
                     $("#base64_img").val(base64data);
                     // call ajax request
+                    var logtime = $("#logtime").val();
                     var txt = $("#base64_img").val();
-                    $.post("https://wepoptrack.herokuapp.com/api/opentrackpost", {image_post: txt}, function(result){
-                        //alert(result);
-                        //$("#base64_img").val('');
+                    var uploadtime = new Date();
+                    $.ajax({
+                        type : "POST",
+                        url: "http://localhost:3000/users/api/opentrackpost",
+                        data : {image_post: txt, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken},
+                        success:function (result){
+                            console.log(result);
+                            store.set('last_upload', uploadtime);
+                        },
+                        error: function (result){
+                            console.log('Errr');
+                        }
                     });
-
-                    document.getElementById("my-preview").setAttribute("src", base64data);
-                },'image/png');
-
                     
+                    // $.post("http://localhost:3000/users/api/opentrackpost", {image_post: txt, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken}, function (result){
+                    //     console.log(result);
+                    // });
                 
-            },false);
+                    document.getElementById("my-preview").setAttribute("src", base64data);
+                },'image/png'); 
 
-//capture screenshot in time interval
-//setInterval(TakeScreenShot, 60000);
-function TakeScreenShot(params) {
-    $("#trigger").trigger("click");
-}
+    },false);
 
-function _timer(callback)
-{
-    var time = 0;     //  The default time of the timer
-    var mode = 1;     //    Mode: count up or count down
-    var status = 0;    //    Status: timer is running or stoped
-    var timer_id;    //    This is used by setInterval function
-    var screen_take; //used for take/stop screenshot
-    
-    // this will start the timer ex. start the timer with 1 second interval timer.start(1000) 
-    this.start = function(interval)
+    //capture screenshot in time interval
+    //setInterval(TakeScreenShot, 60000);
+    function TakeScreenShot(params) {
+        $("#trigger").trigger("click");
+    }
+    function timediff(frmtime) {
+        var fromTime = new Date(frmtime);
+        var toTime = new Date();
+        var diffTravel = toTime.getTime() - fromTime.getTime();
+        var diff_seconds = Math.floor((diffTravel) / (1000));
+        return diff_seconds;
+    }
+
+    function _timer(callback)
     {
-        interval = (typeof(interval) !== 'undefined') ? interval : 1000;
- 		
- 		if(status == 1)
+        var time = 0;     //  The default time of the timer
+        var mode = 1;     //    Mode: count up or count down
+        var status = 0;    //    Status: timer is running or stoped
+        var timer_id;    //    This is used by setInterval function
+        var screen_take; //used for take/stop screenshot
+        
+        // this will start the timer ex. start the timer with 1 second interval timer.start(1000) 
+        this.start = function(interval)
         {
-            status = 0;
-            clearInterval(timer_id);
-            $("#stime").val('Start');
-            clearInterval(screen_take);
-        }
-        else
-        {
-            if(status == 0)
+            interval = (typeof(interval) !== 'undefined') ? interval : 1000;
+            
+            if(status == 1)
             {
-                // call screenshot function in interval
-                screen_take = setInterval( function() { TakeScreenShot() }, 30000);
-                // change start/pause button value
-                $("#stime").val('Pause');
-                status = 1;
-                timer_id = setInterval(function()
+                status = 0;
+                clearInterval(timer_id);
+                $("#stime").val('Start');
+                clearInterval(screen_take); //stop take screenshot
+                // update last work time call ajax function to update time
+                // *****************
+            }
+            else
+            {
+                if(status == 0)
                 {
-                    switch(mode)
+                    // change start/pause button value
+                    $("#stime").val('Pause');
+                    status = 1;
+                    timer_id = setInterval(function()
                     {
-                        default:
-                        if(time)
+                        switch(mode)
                         {
-                            time--;
-                            generateTime();
-                            if(typeof(callback) === 'function') callback(time);
+                            default:
+                            if(time)
+                            {
+                                time--;
+                                generateTime();
+                                if(typeof(callback) === 'function') callback(time);
+                            }
+                            break;
+                            
+                            case 1:
+                            if(time < 86400)
+                            {
+                                time++;
+                                generateTime();
+                                if(typeof(callback) === 'function') callback(time);
+                            }
+                            break;
                         }
-                        break;
-                        
-                        case 1:
-                        if(time < 86400)
-                        {
-                            time++;
-                            generateTime();
-                            if(typeof(callback) === 'function') callback(time);
-                        }
-                        break;
+                    }, interval);
+
+                    // 1st time check time diff from last upload and take screenshot
+                    if(typeof (store.get('last_upload')) !== "undefined"){
+                        var diff_sc = timediff(store.get('last_upload'));
+                        console.log('time diff -' + diff_sc);
                     }
-                }, interval);
+                    // call screenshot function with interval in indivisual process
+                    screen_take = setInterval( function() { TakeScreenShot() }, 60000);
+                }
             }
-       }
-    }
-    
-    //  Same as the name, this will stop or pause the timer ex. timer.stop()
-    this.stop =  function()
-    {
-        if(status == 1)
-        {
-            status = 0;
-            clearInterval(timer_id);
         }
-    }
-    
-    // Reset the timer to zero or reset it to your own custom time ex. reset to zero second timer.reset(0)
-    this.reset =  function(sec)
-    {
-        sec = (typeof(sec) !== 'undefined') ? sec : 0;
-        time = sec;
-        generateTime(time);
-    }
-    
-    // Change the mode of the timer, count-up (1) or countdown (0)
-    this.mode = function(tmode)
-    {
-        mode = tmode;
-    }
-    
-    // This methode return the current value of the timer
-    this.getTime = function()
-    {
-        return time;
-    }
-    
-    // This methode return the current mode of the timer count-up (1) or countdown (0)
-    this.getMode = function()
-    {
-        return mode;
-    }
-    
-    // This methode return the status of the timer running (1) or stoped (1)
-    this.getStatus
-    {
-        return status;
-    }
-    
-    // This methode will render the time variable to hour:minute:second format
-    function generateTime()
-    {
-        var second = time % 60;
-        var minute = Math.floor(time / 60) % 60;
-        var hour = Math.floor(time / 3600) % 60;
         
-        second = (second < 10) ? '0'+second : second;
-        minute = (minute < 10) ? '0'+minute : minute;
-        hour = (hour < 10) ? '0'+hour : hour;
-        
-        $('div.timer span.second').html(second);
-        $('div.timer span.minute').html(minute);
-        $('div.timer span.hour').html(hour);
-    }
-}
- 
-// example use
-var timer;
- 
-$(document).ready(function(e) 
-{
-    timer = new _timer
-    (
-        function(time)
+        //  Same as the name, this will stop or pause the timer ex. timer.stop()
+        this.stop =  function()
         {
-            if(time == 0)
+            if(status == 1)
             {
-                timer.stop();
-                alert('time out');
+                status = 0;
+                clearInterval(timer_id);
             }
         }
-    );
-    timer.reset(0);
-    timer.mode(1);
-});
+        
+        // Reset the timer to zero or reset it to your own custom time ex. reset to zero second timer.reset(0)
+        this.reset =  function(sec)
+        {
+            sec = (typeof(sec) !== 'undefined') ? sec : 0;
+            time = sec;
+            generateTime(time);
+        }
+        
+        // Change the mode of the timer, count-up (1) or countdown (0)
+        this.mode = function(tmode)
+        {
+            mode = tmode;
+        }
+        
+        // This methode return the current value of the timer
+        this.getTime = function()
+        {
+            return time;
+        }
+        
+        // This methode return the current mode of the timer count-up (1) or countdown (0)
+        this.getMode = function()
+        {
+            return mode;
+        }
+        
+        // This methode return the status of the timer running (1) or stoped (1)
+        this.getStatus
+        {
+            return status;
+        }
+        
+        // This methode will render the time variable to hour:minute:second format
+        function generateTime()
+        {
+            $("#logtime").val(time);
+            var second = time % 60;
+            var minute = Math.floor(time / 60) % 60;
+            var hour = Math.floor(time / 3600) % 60;
+            
+            second = (second < 10) ? '0'+second : second;
+            minute = (minute < 10) ? '0'+minute : minute;
+            hour = (hour < 10) ? '0'+hour : hour;
+            
+            $('div.timer span.second').html(second);
+            $('div.timer span.minute').html(minute);
+            $('div.timer span.hour').html(hour);
+        }
+    }
+    
+    // example use
+    var timer;
+    
+    $(document).ready(function(e) 
+    {
+        timer = new _timer
+        (
+            function(time)
+            {
+                if(time == 0)
+                {
+                    timer.stop();
+                    alert('time out');
+                }
+            }
+        );
+        timer.reset(0);
+        timer.mode(1); //default start timeer
+    });
 
 </script>
 
