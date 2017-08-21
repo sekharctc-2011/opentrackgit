@@ -10,5 +10,14 @@
   "license": "MIT",
   "dependencies": {
     "jquery": "^3.2.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sekharctc-2011/opentrackgit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sekharctc-2011/opentrackgit/issues"
+  },
+  "homepage": "https://github.com/sekharctc-2011/opentrackgit#readme"
 }
