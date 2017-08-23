@@ -4,9 +4,14 @@ const {app, BrowserWindow, globalShortcut} = electron
 app.on('ready', ()=>  {
     const Store = require('electron-store');
     const store = new Store();
+    // const base_url = "https://weboptrack.herokuapp.com/";
+    const base_url = "http://localhost:3000/";
     store.delete('optrackuser');
     store.delete('optoken');
     store.delete('last_upload');
+    store.delete('base_url');
+    store.set('base_url', base_url);
+
     if ( typeof store.get('optrackuser') == "undefined") {
         let win = new BrowserWindow({width:800, height:600})
         win.loadURL(`file://${__dirname}/login.html`)

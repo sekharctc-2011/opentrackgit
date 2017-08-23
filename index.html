@@ -44,8 +44,12 @@
         // require('./render.js')
         const Store = require('electron-store');
         const store = new Store();
+
+        const base_url = store.get('base_url');
         var loguser = store.get('optrackuser');
         var logtoken = store.get('optoken');
+
+        const timer_status = 0; //default timer is not run [1 means timer running]
 
         var remote = require('electron').remote;
         document.addEventListener('keydown', function (e){
@@ -141,10 +145,10 @@
                             mandatory: {
                                 chromeMediaSource: 'desktop',
                                 chromeMediaSourceId: sources[i].id,
-                                minWidth: 400,
-                                maxWidth: 500,
-                                minHeight: 350,
-                                maxHeight: 450
+                                minWidth: 800,
+                                maxWidth: 800,
+                                minHeight: 600,
+                                maxHeight: 600
                             }
                         }
                     }, this.handleStream, this.handleError);
@@ -155,42 +159,40 @@
         });
     }
 
-    document.getElementById("trigger").addEventListener("click", function(){
-
-                fullscreenScreenshot(function(base64data){
-                    // Draw image in the img tag
-                    $("#base64_img").val(base64data);
-                    // call ajax request
-                    var logtime = $("#logtime").val();
-                    var txt = $("#base64_img").val();
-                    var uploadtime = new Date();
-                    $.ajax({
-                        type : "POST",
-                        url: "http://localhost:3000/users/api/opentrackpost",
-                        data : {image_post: txt, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken},
-                        success:function (result){
-                            console.log(result);
-                            store.set('last_upload', uploadtime);
-                        },
-                        error: function (result){
-                            console.log('Errr');
-                        }
-                    });
-                    
-                    // $.post("http://localhost:3000/users/api/opentrackpost", {image_post: txt, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken}, function (result){
-                    //     console.log(result);
-                    // });
-                
-                    document.getElementById("my-preview").setAttribute("src", base64data);
-                },'image/png'); 
-
+    document.getElementById("trigger").addEventListener("click", function(){          
+        // call function 
+        alert('Button Clicked');
     },false);
 
     //capture screenshot in time interval
     //setInterval(TakeScreenShot, 60000);
     function TakeScreenShot(params) {
-        $("#trigger").trigger("click");
+        if (timer_status == 1) {
+                fullscreenScreenshot(function(base64data){
+                // Draw image in the img tag
+                $("#base64_img").val(base64data);
+                // call ajax request
+                var logtime = $("#logtime").val();
+                var txt = $("#base64_img").val();
+                var uploadtime = new Date();
+                $.ajax({
+                    type : "POST",
+                    url: base_url+"users/api/opentrackpost",
+                    data : {image_post: txt, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken},
+                    success:function (result){
+                        console.log(result);
+                        store.set('last_upload', uploadtime);
+                    },
+                    error: function (result){
+                        console.log('Errr');
+                    }
+                });
+                // previw the image in img tag
+                // document.getElementById("my-preview").setAttribute("src", base64data);
+            },'image/png');            
+        }
     }
+
     function timediff(frmtime) {
         var fromTime = new Date(frmtime);
         var toTime = new Date();
@@ -215,6 +217,7 @@
             if(status == 1)
             {
                 status = 0;
+                timer_status = 0;
                 clearInterval(timer_id);
                 $("#stime").val('Start');
                 clearInterval(screen_take); //stop take screenshot
@@ -228,6 +231,7 @@
                     // change start/pause button value
                     $("#stime").val('Pause');
                     status = 1;
+                    timer_status = 1;
                     timer_id = setInterval(function()
                     {
                         switch(mode)
@@ -257,8 +261,7 @@
                         var diff_sc = timediff(store.get('last_upload'));
                         console.log('time diff -' + diff_sc);
                     }
-                    // call screenshot function with interval in indivisual process
-                    screen_take = setInterval( function() { TakeScreenShot() }, 60000);
+                   
                 }
             }
         }
@@ -341,6 +344,10 @@
         );
         timer.reset(0);
         timer.mode(1); //default start timeer
+
+         // call screenshot function with interval 1 minute in indivisual process
+         screen_take = setInterval( function() { TakeScreenShot() }, 60000);
+
     });
 
 </script>
