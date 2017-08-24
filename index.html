@@ -49,7 +49,7 @@
         var loguser = store.get('optrackuser');
         var logtoken = store.get('optoken');
 
-        const timer_status = 0; //default timer is not run [1 means timer running]
+        var timer_status = 0; //default timer is not run [1 means timer running]
 
         var remote = require('electron').remote;
         document.addEventListener('keydown', function (e){
@@ -167,6 +167,7 @@
     //capture screenshot in time interval
     //setInterval(TakeScreenShot, 60000);
     function TakeScreenShot(params) {
+        console.log('Screenshort function called');
         if (timer_status == 1) {
                 fullscreenScreenshot(function(base64data){
                 // Draw image in the img tag
@@ -191,6 +192,25 @@
                 // document.getElementById("my-preview").setAttribute("src", base64data);
             },'image/png');            
         }
+    }
+
+    // update work time function
+    function update_user_work_time() {
+        console.log("Last update working time for the day");
+        var totalwork = $("#logtime").val();
+        // var utc = new Date().toJSON().slice(0,10).replace(/-/g,'/');
+        var sysdate = new Date().toJSON().slice(0,10);
+        $.ajax({
+            type : "POST",
+            url : base_url+'users/api/update-time-track',
+            data : {uname :loguser, trackdate : sysdate, timework : totalwork, token: logtoken},
+            success : function (result) {
+                console.log(result);
+            },
+            error : function (result) {
+                console.log("Error occoured");
+            }
+        });
     }
 
     function timediff(frmtime) {
@@ -222,6 +242,7 @@
                 $("#stime").val('Start');
                 clearInterval(screen_take); //stop take screenshot
                 // update last work time call ajax function to update time
+                update_user_work_time();
                 // *****************
             }
             else
