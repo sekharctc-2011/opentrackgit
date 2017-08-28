@@ -37,6 +37,10 @@
         <input type="text" id="base64_img" value="blah blah"/>
         <input type="text" id="logtime">
 
+        <div id="opserver" style="color:white; background-color:black;">
+            
+        </div>
+
     </body>
     <script>
         
@@ -164,6 +168,14 @@
         alert('Button Clicked');
     },false);
 
+    // formating date to YYYY-MM-DD
+    function dateToYMD(date) {
+        var d = date.getDate();
+        var m = date.getMonth() + 1;
+        var y = date.getFullYear();
+        return '' + y + '-' + (m<=9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+    } 
+
     //capture screenshot in time interval
     //setInterval(TakeScreenShot, 60000);
     function TakeScreenShot(params) {
@@ -190,32 +202,65 @@
                 });
                 // previw the image in img tag
                 // document.getElementById("my-preview").setAttribute("src", base64data);
-            },'image/png');            
+            },'image/png');        
+            
+            // call update time function
+            update_user_work_time();
+            //show Notification
+            var path = require('path')
+            var notification = {
+                title: 'OpenTrack Notification',
+                body: 'Your screenshot has been taken',
+                icon: path.join(__dirname, '/assets/img/programming.png')
+            }
+            var myNotification = new window.Notification(notification.title, notification)
+
         }
     }
 
     // update work time function
     function update_user_work_time() {
-        console.log("Last update working time for the day");
+        // var TimeEnd = new Date();
+        var TimeBegin = TimeEnd = new Date();
+        var ActiveTime = 0;
+        if (typeof(store.get('time_begin')) !== "undefined") {
+            TimeBegin = store.get('time_begin');
+            ActiveTime = timediff(store.get('time_begin'), new Date());
+            console.log('Begin time local retrive -'+ TimeBegin);
+        }
         var totalwork = $("#logtime").val();
         // var utc = new Date().toJSON().slice(0,10).replace(/-/g,'/');
-        var sysdate = new Date().toJSON().slice(0,10);
-        $.ajax({
-            type : "POST",
-            url : base_url+'users/api/update-time-track',
-            data : {uname :loguser, trackdate : sysdate, timework : totalwork, token: logtoken},
-            success : function (result) {
-                console.log(result);
-            },
-            error : function (result) {
-                console.log("Error occoured");
-            }
-        });
+        var sysdate = dateToYMD(new Date());
+        // insert time activity ActiveTime >= 1 min
+        console.log("Active time - " + ActiveTime);
+        if (ActiveTime >= 60) {
+            $.ajax({
+                type : "POST",
+                url  : base_url+'users/api/update-time-track',
+                data : { uname  :loguser,
+                        trackdate : sysdate,
+                        timework : totalwork,
+                        t_begin  : TimeBegin,
+                        t_end    : TimeEnd,
+                        time_work: ActiveTime,
+                        token : logtoken
+                        },
+                async :false,
+                success : function (result) {
+                    $("div#opserver").text("Last Updated OpenTrack Server at @" + new Date());
+                },
+                error : function (result) {
+                    console.log("Error occoured");
+                    $("div#opserver").text("Error in updating OpenTrack Server");
+                }
+            });
+        }
     }
 
-    function timediff(frmtime) {
-        var fromTime = new Date(frmtime);
-        var toTime = new Date();
+    // Functions for get time diff between 2 date
+    function timediff(beginT, endT) {
+        var fromTime = new Date(beginT);
+        var toTime = new Date(endT);
         var diffTravel = toTime.getTime() - fromTime.getTime();
         var diff_seconds = Math.floor((diffTravel) / (1000));
         return diff_seconds;
@@ -282,6 +327,9 @@
                         var diff_sc = timediff(store.get('last_upload'));
                         console.log('time diff -' + diff_sc);
                     }
+                    // store start time in local storage
+                    store.set('time_begin', new Date());
+                    console.log('Begin time local store -'+ new Date());
                    
                 }
             }
