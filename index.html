@@ -149,10 +149,10 @@
                             mandatory: {
                                 chromeMediaSource: 'desktop',
                                 chromeMediaSourceId: sources[i].id,
-                                minWidth: 800,
-                                maxWidth: 800,
-                                minHeight: 600,
-                                maxHeight: 600
+                                minWidth: 1024,
+                                maxWidth: 1024,
+                                minHeight: 768,
+                                maxHeight: 768
                             }
                         }
                     }, this.handleStream, this.handleError);
@@ -196,11 +196,24 @@
                 var uploadtime = new Date();
                 $.ajax({
                     type : "POST",
-                    url: base_url+"users/api/opentrackpost",
-                    data : {image_post: txt, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken},
+                    //url: base_url+"users/api/opentrackpost",
+                    //image upload to another server
+                    url: "http://wptrack.kaakai.in/index.php",
+                    data : {image_post: txt},
                     success:function (result){
                         console.log(result);
                         store.set('last_upload', uploadtime);
+                        //set uploaded image to a variable
+                        var compress = result;
+                        //update to nodejs server mongodb
+                        $.ajax({
+                            type: "POST",
+                            url: base_url+"users/api/updatetrackpost",
+                            data : {image_post: compress, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken},
+                            success:function(deta){
+                                console.log(deta);
+                            }
+                        });
                     },
                     error: function (result){
                         console.log('Errr');
