@@ -4,8 +4,8 @@ const {app, BrowserWindow, globalShortcut} = electron
 app.on('ready', ()=>  {
     const Store = require('electron-store');
     const store = new Store();
-    const base_url = "https://weboptrack.herokuapp.com/";
-    // const base_url = "http://localhost:3000/";
+    // const base_url = "https://weboptrack.herokuapp.com/";
+    const base_url = "http://localhost:3000/";
     store.delete('optrackuser');
     store.delete('optoken');
     store.delete('last_upload');

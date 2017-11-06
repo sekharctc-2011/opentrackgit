@@ -196,7 +196,7 @@
                 var uploadtime = new Date();
                 $.ajax({
                     type : "POST",
-                    //url: base_url+"users/api/opentrackpost",
+                    //url: base_url+"api/optrack/opentrackpost",
                     //image upload to another server
                     url: "http://wptrack.kaakai.in/index.php",
                     data : {image_post: txt},
@@ -208,7 +208,7 @@
                         //update to nodejs server mongodb
                         $.ajax({
                             type: "POST",
-                            url: base_url+"users/api/updatetrackpost",
+                            url: base_url+"api/optrack/updatetrackpost",
                             data : {image_post: compress, timework:logtime, uploadtime:uploadtime, loguser: loguser, token: logtoken},
                             success:function(deta){
                                 console.log(deta);
@@ -255,7 +255,7 @@
         if (ActiveTime >= 60) {
             $.ajax({
                 type : "POST",
-                url  : base_url+'users/api/update-time-track',
+                url  : base_url+'api/optrack/update-time-track',
                 data : { uname  :loguser,
                         trackdate : sysdate,
                         timework : totalwork,
